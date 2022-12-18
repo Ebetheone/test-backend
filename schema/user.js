@@ -1,4 +1,3 @@
-"use strict";
 /*
  *  Defined the Mongoose Schema and return a Model for a User
  */

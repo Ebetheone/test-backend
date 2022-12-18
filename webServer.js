@@ -10,14 +10,12 @@ var app = express();
 var bodyParser = require("body-parser");
 var cors = require("cors");
 var User = require("./schema/user.js");
-var Photo = require("./schema/photo.js");
-// var Comment = require("./schema/photo.js");
+var { Photo } = require("./schema/photo.js");
 var SchemaInfo = require("./schema/schemaInfo.js");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-// XXX - Your submission should work without this line. Comment out or delete this line for tests and before submission!
-// var cs142models = require("./modelData/photoApp.js").cs142models;
+// var { cs142models } = require("./modelData/photoApp.js");
 app.use(cors());
 mongoose
   .connect(
@@ -42,17 +40,7 @@ app.get("/", function (request, response) {
   response.send("Simple web server of files from " + __dirname);
 });
 
-/*
- * Use express to handle argument passing in the URL.  This .get will cause express
- * To accept URLs with /test/<something> and return the something in request.params.p1
- * If implement the get as follows:
- * /test or /test/info - Return the SchemaInfo object of the database in JSON format. This
- *                       is good for testing connectivity with  MongoDB.
- * /test/counts - Return an object with the counts of the different collections in JSON format
- */
-app.post("");
 app.get("/test/:p1", function (request, response) {
-  // Express parses the ":p1" from the URL and returns it in the request.params objects.
   console.log("/test called with param1 = ", request.params.p1);
 
   var param = request.params.p1 || "info";
@@ -104,7 +92,7 @@ app.get("/test/:p1", function (request, response) {
           for (var i = 0; i < collections.length; i++) {
             obj[collections[i].name] = collections[i].count;
           }
-          // response.end(JSON.stringify(obj));
+          response.end(JSON.stringify(obj));
           response.send(obj);
         }
       }
@@ -119,12 +107,11 @@ app.get("/test/:p1", function (request, response) {
  * URL /user/list - Return all the User object.
  */
 app.get("/user/list", function (request, response) {
-  //
   User.find().then((users) => {
-    console.log("user", users);
     response.status(200).send(users);
   });
 });
+
 app.get("/photoById/:id", async function (request, response) {
   var id = request.params.id;
   let photo = await Photo.Photo.findById(id);
@@ -135,25 +122,14 @@ app.get("/photoById/:id", async function (request, response) {
  */
 app.get("/user/:id", async function (request, response) {
   var id = request.params.id;
-  console.log(id);
 
-  // User.findById(id)
-  //   .then((user) => {
-  //     response.status(200).send(user);
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
-
-  var user = await User.findById(id);
-  console.log(user);
+  var user = await User.findById({ _id: id });
 
   if (user === null) {
     console.log("User with _id:" + id + " not found.");
-    response.status(400).send("Not found");
-    return;
+    return response.status(400).send("Not found");
   }
-  response.status(200).send(user);
+  return response.status(200).send(user);
 });
 
 /*
@@ -161,14 +137,14 @@ app.get("/user/:id", async function (request, response) {
  */
 app.get("/photosOfUser/:id", async function (request, response) {
   var id = request.params.id;
-  var photos = await Photo.Photo.find({ user_id: id });
+  var photos = await Photo.find({ user_id: id });
   if (photos.length === 0) {
     console.log("Photos for user with _id:" + id + " not found.");
-    response.status(400).send("Not found");
-    return;
+    return response.status(400).send("Not found");
   }
-  response.status(200).send(photos);
+  return response.status(200).send(photos);
 });
+
 // app.post("/comment", async function (res, req) {
 //   const post = new Post({
 //     comment: req.body.comment,
@@ -178,32 +154,27 @@ app.get("/photosOfUser/:id", async function (request, response) {
 //   await Photo.res //await  .save();
 //     .send(post);
 // });
-app.put("/commentsOfPhoto/:id", async function (request, response) {
-  var id = request.params.id;
 
-  // var comments = await Comment.find({ _id: "57231f1a30e4351f4e9f4be9" });
+app.put("/commentsOfPhoto", async function (request, response) {
+  const { userId, photoId } = request.query;
 
-  let photo = await Photo.Photo.findById(id);
-  // Photo.updateOne({ _id: id }, { $set: { comments: req.body.domainName } });
-  let newData = photo.comments;
-
-  var newcomment = new Photo.Comment({
-    comment: request.body.params.data,
-    data_time: Date.now(),
-    user_id: "63749cbb17297af6d1aa0cd6",
-    _id: Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1),
-  });
-  newData.push(newcomment);
-  console.log(newData);
-  Photo.Photo.updateOne({ _id: id }, { $set: { comments: newData } }).then(
-    (res) => {
-      console.log(res);
+  await Photo.updateOne(
+    { _id: photoId },
+    {
+      $push: {
+        comments: {
+          comment: request.body.data,
+          data_time: Date.now(),
+          user_id: userId,
+        },
+      },
     }
   );
-  response.send({ data: id });
+  return response
+    .status(200)
+    .json({ message: "Successfully added comment", result: true });
 });
+
 var server = app.listen(3001, function () {
   var port = server.address().port;
   console.log(

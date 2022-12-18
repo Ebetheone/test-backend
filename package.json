@@ -8,7 +8,8 @@
     "build": "webpack --devtool eval-cheap-module-source-map --output-pathinfo",
     "build:w": "webpack --devtool eval-cheap-module-source-map --output-pathinfo --watch",
     "lint": "eslint webServer.js loadDatabase.js *.jsx components/*/*.jsx || exit 0",
-    "dev": "node loadDatabase.js"
+    "dev": "node loadDatabase.js",
+    "start": "nodemon webServer.js"
   },
   "author": "Mendel Rosenblum <mendel@cs.stanford.edu> ",
   "license": "ISC",

@@ -33,8 +33,8 @@ var cs142models = require("./modelData/photoApp.js").cs142models;
 
 // Load the Mongoose schema for Use and Photo
 var User = require("./schema/user.js");
-var Photo = require("./schema/photo.js");
-var Comment = require("./schema/comment.js");
+const { Photo, Comment } = require("./schema/photo.js");
+// var Comment = require("./schema/comment.js");
 var SchemaInfo = require("./schema/schemaInfo.js");
 
 var versionString = "1.0";
