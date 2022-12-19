@@ -357,7 +357,7 @@ var comments = [
 
 comments.forEach(function (comment) {
   var photo = photos.filter(function (pht) {
-    return pht._id === comment.pht._id;
+    return pht._id === comment.photo_id;
   })[0]; //only one match. return the content of the match inside the array
 
   if (!photo.comments) {
